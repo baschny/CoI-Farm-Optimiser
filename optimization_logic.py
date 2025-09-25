@@ -94,7 +94,7 @@ def format_results_text(result_data, crop_demand, farm_configs, runtime):
     rotations, yields, building_types = best_config
     for idx, (rotation, fert) in enumerate(rotations):
         rot_str = " → ".join(rotation)
-        fert_str = f"{fert}%" if fert is not None else "N/A"
+        fert_str = f"{fert}%" if fert is not None else "Off"
         b_type = building_types[idx]
         b_name = b_type.replace('_', ' ').title()
         b_icon = "🏢" if "greenhouse" in b_type else "🚜"
@@ -110,12 +110,7 @@ def format_results_text(result_data, crop_demand, farm_configs, runtime):
 
     active_configs = [(bt, count) for bt, count in farm_configs if count > 0]
     total_buildings = sum(count for _, count in active_configs)
-    output_lines.append(f"\n📊 Efficiency Metrics:")
-    output_lines.append(f"  🏗️ Total Buildings: {total_buildings}")
-    if total_buildings > 0:
-        output_lines.append(f"  💧 Fertilizer per Building: {best_fertilizer/total_buildings:.1f} units/month")
-        output_lines.append(f"  🌾 Total Yield per Building: {sum(yields.values())/total_buildings:.1f} units/month")
-        
+
     output_lines.append(f"\n⏱️ Total Runtime: {runtime:.2f} seconds")
     
     return "\n".join(output_lines)

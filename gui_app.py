@@ -3,12 +3,10 @@ from tkinter import ttk, scrolledtext
 import threading
 import queue
 
-# --- Import the refactored logic ---
 from optimization_logic import run_full_optimization
 from food_demand_calculator import all_foods
 
 class ToolTip:
-    """Creates a tooltip for a given widget."""
     def __init__(self, widget, text):
         self.widget = widget; self.text = text; self.tooltip_window = None
         widget.bind("<Enter>", self.show_tooltip); widget.bind("<Leave>", self.hide_tooltip)
@@ -24,7 +22,6 @@ class ToolTip:
         self.tooltip_window = None
 
 class CropOptimizerApp(tk.Tk):
-    """Main application class for the Crop Optimizer GUI."""
     def __init__(self):
         super().__init__()
         self.title("Captain of Industry - Crop Rotation Optimizer"); self.geometry("900x850")
@@ -46,7 +43,7 @@ class CropOptimizerApp(tk.Tk):
         primary_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
 
         ttk.Label(primary_frame, text="Population:").grid(row=0, column=0, sticky="w", pady=2)
-        self.population_var = tk.IntVar(value=2560)
+        self.population_var = tk.IntVar(value=1000)
         ttk.Entry(primary_frame, textvariable=self.population_var, width=10).grid(row=0, column=1, sticky="w", pady=2)
 
         ttk.Label(primary_frame, text="Food Multiplier:").grid(row=1, column=0, sticky="w", pady=2)
@@ -63,7 +60,7 @@ class CropOptimizerApp(tk.Tk):
             "Vitamins": ["Vegetables", "Fruit"], "Treats": ["Snack", "Cake"]
         }
         self.food_vars = {}
-        initial_foods = ["Potatoes", "Corn", "Vegetables", "Bread", "Eggs", "Fruit"]
+        initial_foods = ["Potatoes", "Corn", "Vegetables"]
 
         for i, (category, foods) in enumerate(food_categories.items()):
             cat_frame = ttk.LabelFrame(foods_container_frame, text=category)
@@ -78,7 +75,7 @@ class CropOptimizerApp(tk.Tk):
         building_frame = ttk.LabelFrame(primary_frame, text="Building Configuration", padding="5")
         building_frame.grid(row=3, column=0, columnspan=2, sticky="ew", pady=5)
         self.building_vars = {}
-        initial_buildings = {"farm": 4, "greenhouse_tier1": 2, "greenhouse_tier2": 0}
+        initial_buildings = {"farm": 4, "greenhouse_tier1": 0, "greenhouse_tier2": 0}
         for i, b_type in enumerate(self.ALL_BUILDING_TYPES):
             name = b_type.replace('_', ' ').title()
             ttk.Label(building_frame, text=f"{name}:").grid(row=i, column=0, sticky="w", padx=5, pady=2)
@@ -97,7 +94,7 @@ class CropOptimizerApp(tk.Tk):
         ttk.Entry(ga_frame, textvariable=self.ga_pop_var, width=10).grid(row=0, column=1, sticky="w", pady=2)
         
         ttk.Label(ga_frame, text="Generations:").grid(row=1, column=0, sticky="w", pady=2)
-        self.ga_gen_var = tk.IntVar(value=5000)
+        self.ga_gen_var = tk.IntVar(value=1000)
         ttk.Entry(ga_frame, textvariable=self.ga_gen_var, width=10).grid(row=1, column=1, sticky="w", pady=2)
         
         ttk.Label(ga_frame, text="Mutation Rate:").grid(row=2, column=0, sticky="w", pady=2)
@@ -110,7 +107,7 @@ class CropOptimizerApp(tk.Tk):
         self.extra_req_vars = {}
         cols = 2
         for i, crop_name in enumerate(self.ALL_CROPS):
-            default_val = 40 if crop_name == "Corn" else 0
+            default_val = 0
             var = tk.IntVar(value=default_val)
             label = ttk.Label(extra_frame, text=f"{crop_name}:")
             entry = ttk.Entry(extra_frame, textvariable=var, width=8)
