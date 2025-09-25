@@ -1,0 +1,19 @@
+@use "sass:color";
+
+body {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+}
+
+.section-title {
+  font-weight: 600;
+  color: color.adjust(#0d6efd, $lightness: -10%);
+}
+
+.card-shadow {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+.text-monospace {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+}
