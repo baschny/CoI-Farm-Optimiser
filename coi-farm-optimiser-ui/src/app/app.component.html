@@ -1,0 +1,147 @@
+<div class="container py-4" [formGroup]="optimiserForm">
+  <div class="text-center mb-4">
+    <h1 class="display-5 fw-bold">{{ title }}</h1>
+    <p class="text-muted mb-0">Interactive Angular re-imagining of the desktop rotation optimiser.</p>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-xl-7">
+      <ngb-accordion #accordion="ngbAccordion" [closeOthers]="true" activeIds="primary">
+        <ngb-panel id="primary" title="Primary Inputs">
+          <ng-template ngbPanelContent>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Population</label>
+                <input type="number" class="form-control" formControlName="population" min="1" />
+                <div class="invalid-feedback d-block" *ngIf="optimiserForm.get('population')?.invalid && optimiserForm.get('population')?.touched">
+                  Population must be at least 1.
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">Food Multiplier</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" formControlName="foodMultiplier" step="0.05" min="0.1" />
+                  <span class="input-group-text">×</span>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0">Foods to supply</h6>
+                  <span class="badge bg-primary rounded-pill">{{ selectedFoodCount() }} selected</span>
+                </div>
+                <div formGroupName="foods" class="row g-3">
+                  <div class="col-md-6" *ngFor="let category of foodCategories; trackBy: trackByIndex">
+                    <div class="card h-100 border-0 card-shadow">
+                      <div class="card-body py-3">
+                        <h6 class="card-title d-flex align-items-center gap-2">
+                          <span class="fs-5">{{ category.icon }}</span>
+                          <span>{{ category.name }}</span>
+                        </h6>
+                        <div class="d-flex flex-column gap-2">
+                          <div class="form-check" *ngFor="let food of category.foods; trackBy: trackByIndex">
+                            <input type="checkbox" class="form-check-input" [formControlName]="food" />
+                            <label class="form-check-label">{{ food }}</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12" formGroupName="farmConfigs">
+                <h6 class="mb-3">Building capacities</h6>
+                <div class="row g-3">
+                  <div class="col-md-4" *ngFor="let building of buildingTypes; trackBy: trackByIndex">
+                    <label class="form-label fw-semibold d-flex align-items-center gap-2">
+                      {{ building.label }}
+                      <span ngbTooltip="{{ building.description }}" class="text-primary" role="button">ⓘ</span>
+                    </label>
+                    <input type="number" class="form-control" [formControlName]="building.id" min="0" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </ngb-panel>
+
+        <ngb-panel id="advanced" title="Advanced Settings">
+          <ng-template ngbPanelContent>
+            <div class="row g-3" formGroupName="ga">
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">GA Population Size</label>
+                <input type="number" class="form-control" formControlName="populationSize" min="10" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Generations</label>
+                <input type="number" class="form-control" formControlName="generations" min="10" />
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">Mutation Rate</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="mutationRate"
+                  step="0.05"
+                  min="0"
+                  max="1"
+                  ngbTooltip="Probability (0-1) that a rotation mutates each generation"
+                />
+              </div>
+            </div>
+            <hr class="my-4" />
+            <div formGroupName="extraCrops">
+              <h6 class="mb-3">Extra crop requirements (units / month)</h6>
+              <div class="row g-3">
+                <div class="col-md-4" *ngFor="let crop of extraCrops; trackBy: trackByIndex">
+                  <label class="form-label">{{ crop }}</label>
+                  <input type="number" class="form-control" [formControlName]="crop" min="0" step="0.1" />
+                </div>
+              </div>
+            </div>
+          </ng-template>
+        </ngb-panel>
+      </ngb-accordion>
+
+      <div class="d-flex gap-2 mt-4">
+        <button type="button" class="btn btn-primary px-4" (click)="runOptimisation()" [disabled]="isRunning()">
+          <span class="spinner-border spinner-border-sm me-2" *ngIf="isRunning()"></span>
+          Run optimisation
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="resetForm()" [disabled]="isRunning()">
+          Reset form
+        </button>
+      </div>
+
+      <ngb-alert *ngIf="errorMessage()" type="danger" (closed)="errorMessage.set(null)" class="mt-3">
+        {{ errorMessage() }}
+      </ngb-alert>
+    </div>
+
+    <div class="col-xl-5">
+      <div class="card border-0 card-shadow h-100">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title section-title mb-3">Diagnostics &amp; Results</h5>
+
+          <div class="mb-3" *ngIf="isRunning()">
+            <label class="form-label text-muted">Genetic algorithm running…</label>
+            <ngb-progressbar type="info" [value]="100" [striped]="true" [animated]="true"></ngb-progressbar>
+          </div>
+
+          <div class="mb-3">
+            <h6 class="fw-semibold">Log output</h6>
+            <pre class="bg-dark text-light rounded p-3 small text-monospace" style="min-height: 120px; max-height: 200px; overflow:auto;">
+{{ logOutput() || 'Awaiting optimisation run…' }}
+            </pre>
+          </div>
+
+          <div class="flex-grow-1 d-flex flex-column">
+            <h6 class="fw-semibold">Report</h6>
+            <pre class="bg-light border rounded p-3 small flex-grow-1" style="max-height: 240px; overflow:auto; white-space: pre-wrap;">
+{{ reportOutput() || 'Results will appear here once the optimiser completes.' }}
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
